@@ -1,7 +1,3 @@
-use std::sync::{Arc, Condvar, Mutex};
-
-use crate::telemetry::games::forza::ForzaTelemetry;
-
 #[derive(Debug, Clone)]
 pub enum Message {
     NoOp,
@@ -31,11 +27,4 @@ pub enum DashboardVarient {
     #[default]
     None,
     Forza,
-}
-
-#[derive(Default, Clone)]
-pub enum Telemetry {
-    #[default]
-    None,
-    Forza(Arc<(Mutex<ForzaTelemetry>, Condvar)>),
 }

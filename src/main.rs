@@ -4,13 +4,14 @@ use std::thread;
 use iced::Task;
 
 use gui::app::Dashboard;
-use gui::utils::Telemetry;
 use telemetry::config::Game;
 use telemetry::games::forza::{ForzaParser, ForzaTelemetry};
 use telemetry::parser::TelemetryParser;
+use utils::telemetry::Telemetry;
 
 mod gui;
 mod telemetry;
+mod utils;
 
 fn main() -> iced::Result {
     let game: Game = Game::detect_game();

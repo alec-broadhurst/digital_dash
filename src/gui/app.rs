@@ -1,9 +1,8 @@
-use std::sync::{Arc, Condvar, Mutex};
-
 use iced::{Element, Task};
 
 use crate::gui::dashboards::forza_ui;
-use crate::gui::utils::{DashboardVarient, Message, Telemetry};
+use crate::gui::utils::{DashboardVarient, Message};
+use crate::utils::telemetry::Telemetry;
 
 #[derive(Default)]
 pub struct Dashboard {
