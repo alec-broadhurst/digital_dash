@@ -1,3 +1,5 @@
+use std::sync::{Arc, Condvar, Mutex};
+
 use iced::{Element, Task};
 
 use crate::gui::dashboards::forza_ui;
@@ -10,6 +12,13 @@ pub struct Dashboard {
 }
 
 impl Dashboard {
+    pub fn new(initial_telemetry: Telemetry) -> Self {
+        Self {
+            telemetry: initial_telemetry,
+            current_dashboard: DashboardVarient::default(),
+        }
+    }
+
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::NoOp => Task::none(),
@@ -43,8 +52,8 @@ impl Dashboard {
                     async {
                         match telem_clone {
                             Telemetry::None => Message::NoOp,
-                            Telemetry::Forza(telemetry) => {
-                                let (lock, cvar) = &*telemetry;
+                            Telemetry::Forza(telem) => {
+                                let (lock, cvar) = &*telem;
                                 let data = cvar.wait(lock.lock().unwrap()).unwrap();
 
                                 Message::UpdateForzaUI {
