@@ -1,5 +1,4 @@
-use iced::widget::Container;
-use iced::Task;
+use iced::{Element, Task};
 
 use crate::gui::dashboards::forza_ui;
 use crate::gui::utils::{DashboardVarient, Message, Telemetry};
@@ -74,7 +73,7 @@ impl Dashboard {
         }
     }
 
-    pub fn view(&self) -> Container<Message> {
+    pub fn view(&self) -> Element<Message> {
         match self.current_dashboard {
             DashboardVarient::None => forza_ui::forza_dashboard(&self),
             DashboardVarient::Forza => forza_ui::forza_dashboard(&self),
