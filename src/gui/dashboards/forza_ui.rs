@@ -1,10 +1,10 @@
-use iced::widget::{column, text, Container};
+use iced::widget::text;
+use iced::Element;
 
 use crate::gui::app::Dashboard;
 use crate::gui::utils::Message;
 
-pub fn forza_dashboard(dashboard: &Dashboard) -> Container<Message> {
+pub fn forza_dashboard(dashboard: &Dashboard) -> Element<Message> {
     let rpm_lights = text!("**********************");
-    let interface = Container::new(rpm_lights);
-    interface
+    Element::new(rpm_lights)
 }
