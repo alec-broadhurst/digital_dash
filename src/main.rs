@@ -1,8 +1,10 @@
-use iced;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
+use iced::Task;
+
 use gui::app::Dashboard;
+use gui::utils::Telemetry;
 use telemetry::config::Game;
 use telemetry::games::forza::{ForzaParser, ForzaTelemetry};
 use telemetry::parser::TelemetryParser;
@@ -21,5 +23,6 @@ fn main() -> iced::Result {
         Game::Forza => ForzaParser::parse_packets(telemetry_clone),
     });
 
-    iced::run("Digital Dash", Dashboard::update, Dashboard::view)
+    iced::application("Digital Dash", Dashboard::update, Dashboard::view)
+        .run_with(|| (Dashboard::new(Telemetry::Forza(telemetry)), Task::none()))
 }
