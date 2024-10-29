@@ -4,7 +4,7 @@ use std::sync::{Arc, Condvar, Mutex};
 use crate::telemetry::parser::TelemetryParser;
 use crate::telemetry::utils::{parse_f32_from_bytes, parse_i16_from_bytes, setup_udp_socket};
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct ForzaTelemetry {
     current_rpm: f32,
     max_rpm: f32,

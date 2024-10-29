@@ -1,12 +1,15 @@
 use iced::{Element, Task};
 
 use crate::gui::dashboards::forza_ui;
-use crate::gui::utils::{DashboardVarient, Message};
+use crate::gui::message::Message;
+use crate::gui::utils::DashboardVarient;
+use crate::telemetry::games::forza::ForzaTelemetry;
 use crate::utils::telemetry::Telemetry;
 
 #[derive(Default)]
 pub struct Dashboard {
     telemetry: Telemetry,
+    pub forza_telemetry: ForzaTelemetry,
     current_dashboard: DashboardVarient,
 }
 
@@ -14,6 +17,7 @@ impl Dashboard {
     pub fn new(initial_telemetry: Telemetry) -> Self {
         Self {
             telemetry: initial_telemetry,
+            forza_telemetry: ForzaTelemetry::default(),
             current_dashboard: DashboardVarient::default(),
         }
     }
@@ -27,56 +31,14 @@ impl Dashboard {
                 DashboardVarient::Forza => Task::none(),
             },
 
-            Message::UpdateForzaUI {
-                current_rpm,
-                max_rpm,
-                speed,
-                best_lap,
-                current_lap,
-                delta,
-                gear,
-                accel,
-                brake,
-                position,
-                temp_left_f,
-                temp_right_f,
-                temp_left_r,
-                temp_right_r,
-                lap_number,
-            } => Task::none(),
+            Message::UpdateForzaTelemetry(telemetry) => {
+                self.forza_telemetry = telemetry;
+                Task::none()
+            }
 
             Message::UpdateTelemetry => {
-                let telem_clone = self.telemetry.clone();
-                Task::perform(
-                    async {
-                        match telem_clone {
-                            Telemetry::None => Message::NoOp,
-                            Telemetry::Forza(telem) => {
-                                let (lock, cvar) = &*telem;
-                                let data = cvar.wait(lock.lock().unwrap()).unwrap();
-
-                                Message::UpdateForzaUI {
-                                    current_rpm: data.get_current_rpm(),
-                                    max_rpm: data.get_max_rpm(),
-                                    speed: data.get_speed(),
-                                    best_lap: data.get_best_lap(),
-                                    current_lap: data.get_current_lap(),
-                                    delta: data.get_delta(),
-                                    gear: data.get_gear(),
-                                    accel: data.get_accel(),
-                                    brake: data.get_brake(),
-                                    position: data.get_position(),
-                                    temp_left_f: data.get_temp_left_f(),
-                                    temp_right_f: data.get_temp_right_f(),
-                                    temp_left_r: data.get_temp_left_r(),
-                                    temp_right_r: data.get_temp_right_r(),
-                                    lap_number: data.get_lap_number(),
-                                }
-                            }
-                        }
-                    },
-                    |message| message,
-                )
+                let telemetry = self.telemetry.clone();
+                Task::perform(Self::read_telemetry(telemetry), |output| output)
             }
         }
     }
@@ -85,6 +47,17 @@ impl Dashboard {
         match self.current_dashboard {
             DashboardVarient::None => forza_ui::forza_dashboard(&self),
             DashboardVarient::Forza => forza_ui::forza_dashboard(&self),
+        }
+    }
+
+    async fn read_telemetry(telemetry: Telemetry) -> Message {
+        match telemetry {
+            Telemetry::None => Message::NoOp,
+            Telemetry::Forza(telemetry) => {
+                let (lock, cvar) = &*telemetry;
+                let data = cvar.wait(lock.lock().unwrap()).unwrap();
+                Message::UpdateForzaTelemetry(data.clone())
+            }
         }
     }
 }
