@@ -16,7 +16,10 @@ mod utils;
 fn main() -> iced::Result {
     let game: Game = Game::detect_game();
     let telemetry = match game {
-        Game::Forza => Arc::new((Mutex::new(ForzaTelemetry::default()), Condvar::new())),
+        Game::Forza => Arc::new((
+            Mutex::new(Telemetry::Forza(ForzaTelemetry::default())),
+            Condvar::new(),
+        )),
     };
 
     let telemetry_clone = telemetry.clone();
@@ -25,5 +28,5 @@ fn main() -> iced::Result {
     });
 
     iced::application("Digital Dash", Dashboard::update, Dashboard::view)
-        .run_with(|| (Dashboard::new(Telemetry::Forza(telemetry)), Task::none()))
+        .run_with(|| (Dashboard::new(telemetry), Task::none()))
 }

@@ -1,9 +1,9 @@
-use crate::telemetry::games::forza::ForzaTelemetry;
+use crate::utils::telemetry::Telemetry;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     NoOp,
     SwitchDashboard,
-    UpdateTelemetry,
-    UpdateForzaTelemetry(ForzaTelemetry),
+    ReadTelemetry,
+    UpdateTelemetry(Telemetry),
 }
