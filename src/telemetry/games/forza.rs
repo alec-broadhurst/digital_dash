@@ -3,6 +3,7 @@ use std::sync::{Arc, Condvar, Mutex};
 
 use crate::telemetry::parser::TelemetryParser;
 use crate::telemetry::utils::{parse_f32_from_bytes, parse_i16_from_bytes, setup_udp_socket};
+use crate::utils::telemetry::Telemetry;
 
 #[derive(Default, Clone, Debug)]
 pub struct ForzaTelemetry {
@@ -107,8 +108,7 @@ impl ForzaTelemetry {
 pub struct ForzaParser;
 
 impl TelemetryParser for ForzaParser {
-    type GameTelemetry = ForzaTelemetry;
-    fn parse_packets(telemetry: Arc<(Mutex<Self::GameTelemetry>, Condvar)>) {
+    fn parse_packets(telemetry: Arc<(Mutex<Telemetry>, Condvar)>) {
         let socket: UdpSocket = setup_udp_socket();
 
         loop {
@@ -118,32 +118,34 @@ impl TelemetryParser for ForzaParser {
             let (lock, cvar) = &*telemetry;
             let mut telem = lock.lock().unwrap();
 
-            telem.current_rpm = parse_f32_from_bytes(&buf[16..20]).round();
-            telem.max_rpm = parse_f32_from_bytes(&buf[8..12]);
-            telem.speed = (parse_f32_from_bytes(&buf[244..248]) * 2.237).round();
-            telem.best_lap = parse_f32_from_bytes(&buf[284..288]);
-            telem.current_lap = parse_f32_from_bytes(&buf[292..296]);
-            telem.last_lap = parse_f32_from_bytes(&buf[288..292]);
-            telem.lap_number = parse_i16_from_bytes(&buf[300..302]) as i32;
-            telem.position = buf[302] as i32;
-            telem.gear = buf[307] as i32;
-            telem.accel = buf[303] as f32;
-            telem.brake = buf[304] as f32;
-            telem.temp_left_f = parse_f32_from_bytes(&buf[256..260]).round();
-            telem.temp_right_f = parse_f32_from_bytes(&buf[260..264]).round();
-            telem.temp_left_r = parse_f32_from_bytes(&buf[264..268]).round();
-            telem.temp_right_r = parse_f32_from_bytes(&buf[268..272]).round();
+            if let Telemetry::Forza(forza_telem) = &mut *telem {
+                forza_telem.current_rpm = parse_f32_from_bytes(&buf[16..20]).round();
+                forza_telem.max_rpm = parse_f32_from_bytes(&buf[8..12]);
+                forza_telem.speed = (parse_f32_from_bytes(&buf[244..248]) * 2.237).round();
+                forza_telem.best_lap = parse_f32_from_bytes(&buf[284..288]);
+                forza_telem.current_lap = parse_f32_from_bytes(&buf[292..296]);
+                forza_telem.last_lap = parse_f32_from_bytes(&buf[288..292]);
+                forza_telem.lap_number = parse_i16_from_bytes(&buf[300..302]) as i32;
+                forza_telem.position = buf[302] as i32;
+                forza_telem.gear = buf[307] as i32;
+                forza_telem.accel = buf[303] as f32;
+                forza_telem.brake = buf[304] as f32;
+                forza_telem.temp_left_f = parse_f32_from_bytes(&buf[256..260]).round();
+                forza_telem.temp_right_f = parse_f32_from_bytes(&buf[260..264]).round();
+                forza_telem.temp_left_r = parse_f32_from_bytes(&buf[264..268]).round();
+                forza_telem.temp_right_r = parse_f32_from_bytes(&buf[268..272]).round();
 
-            if telem.prev_best == 0.0 && telem.lap_number > 1 {
-                telem.prev_best = telem.best_lap;
+                if forza_telem.prev_best == 0.0 && forza_telem.lap_number > 1 {
+                    forza_telem.prev_best = forza_telem.best_lap;
+                }
+
+                if forza_telem.last_lap != forza_telem.best_lap {
+                    forza_telem.prev_best = forza_telem.best_lap;
+                }
+
+                cvar.notify_one();
+                let _telem = cvar.wait(telem).unwrap();
             }
-
-            if telem.last_lap != telem.best_lap {
-                telem.prev_best = telem.best_lap;
-            }
-
-            cvar.notify_one();
-            let _telem = cvar.wait(telem).unwrap();
         }
     }
 }

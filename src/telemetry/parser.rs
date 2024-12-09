@@ -1,7 +1,7 @@
 use std::sync::{Arc, Condvar, Mutex};
 
-pub trait TelemetryParser {
-    type GameTelemetry;
+use crate::utils::telemetry::Telemetry;
 
-    fn parse_packets(telemetry: Arc<(Mutex<Self::GameTelemetry>, Condvar)>);
+pub trait TelemetryParser {
+    fn parse_packets(telemetry: Arc<(Mutex<Telemetry>, Condvar)>);
 }
