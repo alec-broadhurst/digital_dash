@@ -4,6 +4,7 @@ use iced::{Element, Subscription, Task};
 use crate::gui::dashboards::forza_ui;
 use crate::gui::message::Message;
 use crate::gui::utils::DashboardVarient;
+use crate::telemetry::config::Game;
 use crate::telemetry::games::forza::ForzaParser;
 use crate::telemetry::parser::TelemetryParser;
 use crate::utils::telemetry::Telemetry;
@@ -20,25 +21,24 @@ impl Dashboard {
                 telemetry: None,
                 current_dashboard: DashboardVarient::default(),
             },
-            Task::none(),
+            Task::future(async { Message::SwitchDashboard }),
         )
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::NoOp => Task::none(),
-
-            Message::SwitchDashboard => match self.current_dashboard {
-                DashboardVarient::None => Task::none(),
-                DashboardVarient::Forza => Task::none(),
-            },
+            Message::SwitchDashboard => {
+                self.current_dashboard = match Game::detect_game() {
+                    Game::Forza => DashboardVarient::Forza,
+                    Game::None => DashboardVarient::None,
+                };
+                Task::none()
+            }
 
             Message::UpdateTelemetry(telemetry) => {
                 self.telemetry = Some(telemetry);
                 Task::none()
             }
-
-            _ => Task::none(),
         }
     }
 

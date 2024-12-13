@@ -1,5 +1,6 @@
 pub enum Game {
     Forza,
+    None,
 }
 
 impl Game {
