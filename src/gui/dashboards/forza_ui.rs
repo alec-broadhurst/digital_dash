@@ -1,15 +1,15 @@
-use iced::widget::text;
-use iced::Element;
+use iced::widget::{container, text, Column, Container, Row, Text};
+use iced::{theme, Alignment, Element};
 
 use crate::gui::app::Dashboard;
 use crate::gui::message::Message;
 use crate::utils::telemetry::Telemetry;
 
-pub fn forza_dashboard(dashboard: &Dashboard) -> Element<Message> {
-    let telemetry = dashboard.get_telemetry();
-    if let Telemetry::Forza(telem) = telemetry {
-        telem.get_gear();
+pub fn forza_dashboard(dash: &Dashboard) -> Element<Message> {
+    if let Some(Telemetry::Forza(forza_telemetry)) = dash.get_telemetry() {
+        let gear = Text::new(forza_telemetry.get_gear());
+        Element::new(gear)
+    } else {
+        Element::new(text!("Nothing here"))
     }
-    let rpm_lights = text!("**********************");
-    Element::new(rpm_lights)
 }

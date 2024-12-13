@@ -1,26 +1,27 @@
-use std::sync::{Arc, Condvar, Mutex};
-
-use iced::{Element, Task};
+use iced::futures::StreamExt;
+use iced::{Element, Subscription, Task};
 
 use crate::gui::dashboards::forza_ui;
 use crate::gui::message::Message;
 use crate::gui::utils::DashboardVarient;
+use crate::telemetry::games::forza::ForzaParser;
+use crate::telemetry::parser::TelemetryParser;
 use crate::utils::telemetry::Telemetry;
 
-#[derive(Default)]
 pub struct Dashboard {
-    telemetry: Arc<(Mutex<Telemetry>, Condvar)>,
-    processed_telemetry: Telemetry,
+    telemetry: Option<Telemetry>,
     current_dashboard: DashboardVarient,
 }
 
 impl Dashboard {
-    pub fn new(initial_telemetry: Arc<(Mutex<Telemetry>, Condvar)>) -> Self {
-        Self {
-            telemetry: initial_telemetry,
-            processed_telemetry: Telemetry::default(),
-            current_dashboard: DashboardVarient::default(),
-        }
+    pub fn new() -> (Self, Task<Message>) {
+        (
+            Self {
+                telemetry: None,
+                current_dashboard: DashboardVarient::default(),
+            },
+            Task::none(),
+        )
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -32,15 +33,12 @@ impl Dashboard {
                 DashboardVarient::Forza => Task::none(),
             },
 
-            Message::ReadTelemetry => {
-                let telemetry = self.telemetry.clone();
-                Task::perform(Self::read_telemetry(telemetry), |output| output)
-            }
-
-            Message::UpdateTelemetry(telem) => {
-                self.processed_telemetry = telem;
+            Message::UpdateTelemetry(telemetry) => {
+                self.telemetry = Some(telemetry);
                 Task::none()
             }
+
+            _ => Task::none(),
         }
     }
 
@@ -51,15 +49,17 @@ impl Dashboard {
         }
     }
 
-    async fn read_telemetry(telemetry: Arc<(Mutex<Telemetry>, Condvar)>) -> Message {
-        let (lock, cvar) = &*telemetry;
-        let telem = cvar.wait(lock.lock().unwrap()).unwrap();
-        let data = telem.clone();
-        cvar.notify_one();
-        Message::UpdateTelemetry(data)
+    pub fn subscription(&self) -> Subscription<Message> {
+        match self.current_dashboard {
+            DashboardVarient::Forza => {
+                Subscription::run(|| ForzaParser::parse_packets().map(Message::UpdateTelemetry))
+            }
+
+            _ => Subscription::run(|| ForzaParser::parse_packets().map(Message::UpdateTelemetry)),
+        }
     }
 
-    pub fn get_telemetry(&self) -> &Telemetry {
-        &self.processed_telemetry
+    pub fn get_telemetry(&self) -> Option<&Telemetry> {
+        self.telemetry.as_ref()
     }
 }
