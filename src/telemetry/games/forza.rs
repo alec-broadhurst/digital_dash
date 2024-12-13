@@ -111,15 +111,14 @@ pub struct ForzaParser;
 
 impl TelemetryParser for ForzaParser {
     fn parse_packets() -> impl Stream<Item = Telemetry> {
-        stream::channel(100, |mut output| async move {
+        stream::channel(1, |mut output| async move {
             let socket: UdpSocket = setup_udp_socket();
             socket.set_nonblocking(true).unwrap();
 
             let mut prev_state: Option<ForzaTelemetry> = None;
+            let mut buf: Vec<u8> = vec![0; 500];
 
             loop {
-                let mut buf: Vec<u8> = vec![0; 500];
-
                 match socket.recv(&mut buf) {
                     Ok(_) => {
                         let mut current = ForzaTelemetry {
