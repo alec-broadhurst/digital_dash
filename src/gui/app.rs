@@ -1,7 +1,7 @@
 use iced::futures::StreamExt;
 use iced::{Element, Subscription, Task};
 
-use crate::gui::dashboards::forza_ui;
+use crate::gui::dashboards::{forza_ui, none_ui};
 use crate::gui::message::Message;
 use crate::gui::utils::DashboardVarient;
 use crate::telemetry::config::Game;
@@ -44,7 +44,7 @@ impl Dashboard {
 
     pub fn view(&self) -> Element<Message> {
         match self.current_dashboard {
-            DashboardVarient::None => forza_ui::forza_dashboard(self),
+            DashboardVarient::None => none_ui::no_dashboard(self),
             DashboardVarient::Forza => forza_ui::forza_dashboard(self),
         }
     }
