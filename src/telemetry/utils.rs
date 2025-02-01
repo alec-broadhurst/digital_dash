@@ -13,6 +13,6 @@ pub fn parse_f32_from_bytes(buf: &[u8]) -> f32 {
     f32::from_le_bytes(buf.try_into().unwrap())
 }
 
-pub fn parse_i16_from_bytes(buf: &[u8]) -> i16 {
-    i16::from_le_bytes(buf.try_into().unwrap())
+pub fn parse_u16_from_bytes(buf: &[u8]) -> u16 {
+    u16::from_le_bytes(buf.try_into().unwrap())
 }

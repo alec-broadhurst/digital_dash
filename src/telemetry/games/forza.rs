@@ -4,7 +4,7 @@ use iced::futures::{SinkExt, Stream};
 use iced::stream;
 
 use crate::telemetry::parser::TelemetryParser;
-use crate::telemetry::utils::{parse_f32_from_bytes, parse_i16_from_bytes, setup_udp_socket};
+use crate::telemetry::utils::{parse_f32_from_bytes, parse_u16_from_bytes, setup_udp_socket};
 use crate::utils::telemetry::Telemetry;
 
 #[derive(Default, Clone, Debug)]
@@ -16,15 +16,15 @@ pub struct ForzaTelemetry {
     prev_best: f32,
     current_lap: f32,
     last_lap: f32,
-    gear: i32,
+    gear: u8,
     accel: f32,
     brake: f32,
-    position: i32,
+    position: u8,
     temp_left_f: f32,
     temp_right_f: f32,
     temp_left_r: f32,
     temp_right_r: f32,
-    lap_number: i32,
+    lap_number: u16,
 }
 
 impl ForzaTelemetry {
@@ -48,7 +48,7 @@ impl ForzaTelemetry {
         Self::format_time(self.current_lap)
     }
 
-    pub fn get_gear(&self) -> i32 {
+    pub fn get_gear(&self) -> u8 {
         self.gear
     }
 
@@ -60,7 +60,7 @@ impl ForzaTelemetry {
         self.brake / 255.0 * 100.0
     }
 
-    pub fn get_position(&self) -> i32 {
+    pub fn get_position(&self) -> u8 {
         self.position
     }
 
@@ -89,7 +89,7 @@ impl ForzaTelemetry {
         )
     }
 
-    pub fn get_lap_number(&self) -> i32 {
+    pub fn get_lap_number(&self) -> u16 {
         self.lap_number + 1
     }
 
@@ -137,9 +137,9 @@ impl TelemetryParser for ForzaParser {
                             best_lap: parse_f32_from_bytes(&buf[284..288]),
                             current_lap: parse_f32_from_bytes(&buf[292..296]),
                             last_lap: parse_f32_from_bytes(&buf[288..292]),
-                            lap_number: parse_i16_from_bytes(&buf[300..302]) as i32,
-                            position: buf[302] as i32,
-                            gear: buf[307] as i32,
+                            lap_number: parse_u16_from_bytes(&buf[300..302]),
+                            position: buf[302],
+                            gear: buf[307],
                             accel: buf[303] as f32,
                             brake: buf[304] as f32,
                             temp_left_f: parse_f32_from_bytes(&buf[256..260]).round(),
