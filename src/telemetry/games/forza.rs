@@ -80,6 +80,15 @@ impl ForzaTelemetry {
         self.temp_right_r
     }
 
+    pub fn get_tire_temps(&self) -> (f32, f32, f32, f32) {
+        (
+            self.temp_left_f,
+            self.temp_right_f,
+            self.temp_left_r,
+            self.temp_right_r,
+        )
+    }
+
     pub fn get_lap_number(&self) -> i32 {
         self.lap_number + 1
     }
