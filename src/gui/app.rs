@@ -44,8 +44,8 @@ impl Dashboard {
 
     pub fn view(&self) -> Element<Message> {
         match self.current_dashboard {
-            DashboardVarient::None => none_ui::no_dashboard(self),
-            DashboardVarient::Forza => forza_ui::forza_dashboard(self),
+            DashboardVarient::None => none_ui::no_dashboard(self).into(),
+            DashboardVarient::Forza => forza_ui::forza_dashboard(self).into(),
         }
     }
 
@@ -55,7 +55,7 @@ impl Dashboard {
                 Subscription::run(|| ForzaParser::parse_packets().map(Message::UpdateTelemetry))
             }
 
-            _ => Subscription::run(|| ForzaParser::parse_packets().map(Message::UpdateTelemetry)),
+            _ => Subscription::none(),
         }
     }
 
