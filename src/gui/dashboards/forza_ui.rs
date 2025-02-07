@@ -1,66 +1,209 @@
-use iced::widget::{container, text, Column, Container, Row, Text};
-use iced::{Alignment, Color, Element, Length};
+use iced::widget::{container, progress_bar, text, Column, Container, Row, Text};
+use iced::Length::{Fill, FillPortion};
+use iced::{Alignment, Element};
 
 use crate::gui::app::Dashboard;
 use crate::gui::message::Message;
 use crate::gui::styles::container::ContainerType;
+use crate::gui::styles::progress_bar::ProgressBarStyle;
 use crate::utils::telemetry::Telemetry;
 
 pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
     if let Some(Telemetry::Forza(forza_telemetry)) = dash.get_telemetry() {
-        let mut body = Column::new()
-            .width(Length::Fill)
-            .padding(10)
+        // main column to hold all the widgets
+        let mut dash = Column::new()
+            .width(Fill)
+            .padding(20)
             .spacing(10)
             .align_x(Alignment::Center);
 
-        let gear = gear_container(forza_telemetry.get_gear());
-        let speed = speed_container(forza_telemetry.get_speed());
+        // top row to hold rpm lights
+        let rpm_lights = rpm_lights_container();
+        dash = dash.push(rpm_lights);
 
-        let tire_temps = tire_temps_container(forza_telemetry.get_tire_temps());
+        // middle row to hold rpm, position, gear, speed, lap number, and time info
+        let mut middle_row = Row::new().spacing(20);
 
-        body = body.push(speed).push(gear).push(tire_temps);
+        // left side of middle row
+        let rpm_pos = container(
+            Column::new()
+                .push(rpm_container(forza_telemetry.get_current_rpm()))
+                .push(position_container(forza_telemetry.get_position()))
+                .push(accel_container(forza_telemetry.get_accel()))
+                .push(brake_container(forza_telemetry.get_brake()))
+                .spacing(10),
+        );
 
-        Container::new(body)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center(Length::Fill)
-            .style(ContainerType::rounded_border)
+        middle_row = middle_row.push(rpm_pos);
+
+        // center of middle row
+        let speed_gear_temps = container(
+            Column::new()
+                .push(speed_container(forza_telemetry.get_speed()).center(FillPortion(1)))
+                .push(gear_container(forza_telemetry.get_gear()).center(FillPortion(4)))
+                .push(tire_temp_container(forza_telemetry.get_tire_temps()).center(FillPortion(2)))
+                .spacing(10),
+        );
+
+        middle_row = middle_row.push(speed_gear_temps);
+
+        // right side of middle row
+        let time_info = container(
+            Column::new()
+                .push(lap_num_container(forza_telemetry.get_lap_number()).center(FillPortion(1)))
+                .push(laptime_container(forza_telemetry.get_current_lap()).center(FillPortion(3)))
+                .push(
+                    container(
+                        Row::new()
+                            .push(delta_container(forza_telemetry.get_delta()))
+                            .push(best_lap_container(forza_telemetry.get_best_lap()))
+                            .spacing(10),
+                    )
+                    .center(FillPortion(2)),
+                )
+                .spacing(10),
+        );
+
+        middle_row = middle_row.push(time_info);
+
+        dash = dash.push(middle_row);
+
+        Container::new(dash)
+            .width(Fill)
+            .height(Fill)
+            .center(Fill)
+            .style(ContainerType::standard)
+            .padding(40)
     } else {
         Container::new(Element::new(text!("Nothing here").size(75)))
-            .center(Length::Fill)
+            .center(Fill)
             .style(ContainerType::rounded_border)
     }
 }
 
-fn speed_container(speed: f32) -> Element<'static, Message> {
-    let text_color = Color::WHITE;
-
-    container(text(format!("{}", speed)).size(50).color(text_color))
-        .style(ContainerType::rounded_border)
-        .into()
+fn rpm_lights_container() -> Container<'static, Message> {
+    container(text("TODO").size(50))
+        .width(Fill)
+        .style(ContainerType::rounded_filled)
+        .center_x(Fill)
 }
 
-fn gear_container(gear: i32) -> Element<'static, Message> {
-    let text_color = Color::WHITE;
-
-    container(text(format!("{}", gear)).size(100).color(text_color))
+fn rpm_container(rpm: f32) -> Container<'static, Message> {
+    container(Column::new().push(text(format!("{}", rpm)).size(30)))
         .style(ContainerType::rounded_border)
-        .into()
+        .center_x(Fill)
+        .padding(10)
 }
 
-fn tire_temps_container(tire_temps: (f32, f32, f32, f32)) -> Element<'static, Message> {
-    let text_color = Color::WHITE;
+fn position_container(pos: u8) -> Container<'static, Message> {
+    container(
+        Row::new()
+            .push(
+                container(Text::new("pos").size(30))
+                    .style(ContainerType::square_filled)
+                    .center(FillPortion(1)),
+            )
+            .push(container(Text::new(format!("{}", pos)).size(30)).center(FillPortion(2))),
+    )
+    .style(ContainerType::rounded_border)
+    .center_x(Fill)
+}
 
+fn speed_container(speed: f32) -> Container<'static, Message> {
+    container(Text::new(format!("{}", speed)).size(30))
+        .center(Fill)
+        .style(ContainerType::rounded_border)
+}
+
+fn gear_container(gear: u8) -> Container<'static, Message> {
+    container(text(format!("{}", gear)).size(70))
+        .center(Fill)
+        .style(ContainerType::rounded_border)
+}
+
+fn lap_num_container(lap_num: u16) -> Container<'static, Message> {
+    container(
+        Row::new()
+            .push(
+                container(Text::new("Lap").size(30))
+                    .style(ContainerType::square_filled)
+                    .center(FillPortion(1)),
+            )
+            .push(container(Text::new(format!("{}", lap_num)).size(30)).center(FillPortion(2))),
+    )
+    .style(ContainerType::rounded_border)
+    .center_x(Fill)
+}
+
+fn tire_temp_container(temps: (f32, f32, f32, f32)) -> Container<'static, Message> {
+    let title = container(Row::new().push(Text::new("Tire Temps").size(30)))
+        .style(ContainerType::square_filled)
+        .center(Fill);
     let front_temps = Row::new()
-        .push(Text::new(format!("Front Left: {}", tire_temps.0)).color(text_color))
-        .push(Text::new(format!("Front Right: {}", tire_temps.1)).color(text_color));
+        .push(container(Text::new(format!("{}", temps.0)).size(30)).center(FillPortion(1)))
+        .push(container(Text::new(format!("{}", temps.1)).size(30)).center(FillPortion(1)));
 
     let rear_temps = Row::new()
-        .push(Text::new(format!("Front Left: {}", tire_temps.2)).color(text_color))
-        .push(Text::new(format!("Front Right: {}", tire_temps.3)).color(text_color));
+        .push(container(Text::new(format!("{}", temps.2)).size(30)).center(FillPortion(1)))
+        .push(container(Text::new(format!("{}", temps.3)).size(30)).center(FillPortion(1)));
 
-    container(Column::new().push(front_temps).push(rear_temps))
+    let all_temps = Column::new().push(title).push(front_temps).push(rear_temps);
+
+    container(all_temps)
         .style(ContainerType::rounded_border)
-        .into()
+        .center(Fill)
+}
+
+fn laptime_container(laptime: String) -> Container<'static, Message> {
+    container(
+        Column::new()
+            .push(
+                container(Text::new("Laptime").size(30))
+                    .style(ContainerType::square_filled)
+                    .center(FillPortion(1)),
+            )
+            .push(container(Text::new(laptime).size(40)).center(FillPortion(2))),
+    )
+    .style(ContainerType::rounded_border)
+    .center_x(Fill)
+}
+
+fn delta_container(delta: String) -> Container<'static, Message> {
+    container(
+        Column::new()
+            .push(
+                container(Text::new("Delta").size(20))
+                    .style(ContainerType::square_filled)
+                    .center(FillPortion(1)),
+            )
+            .push(container(Text::new(delta).size(20)).center(FillPortion(2))),
+    )
+    .style(ContainerType::rounded_border)
+    .center(Fill)
+}
+
+fn best_lap_container(laptime: String) -> Container<'static, Message> {
+    container(
+        Column::new()
+            .push(
+                container(Text::new("Best").size(20))
+                    .style(ContainerType::square_filled)
+                    .center(FillPortion(1)),
+            )
+            .push(container(Text::new(laptime).size(20)).center(FillPortion(2))),
+    )
+    .style(ContainerType::rounded_border)
+    .center(Fill)
+}
+
+fn accel_container(accel: f32) -> Container<'static, Message> {
+    container(progress_bar(0.0..=100.0, accel).style(ProgressBarStyle::accel_bar))
+        .center(Fill)
+        .style(ContainerType::standard)
+}
+
+fn brake_container(brake: f32) -> Container<'static, Message> {
+    container(progress_bar(0.0..=100.0, brake).style(ProgressBarStyle::brake_bar))
+        .center(Fill)
+        .style(ContainerType::standard)
 }
