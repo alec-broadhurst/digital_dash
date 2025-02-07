@@ -128,48 +128,45 @@ impl TelemetryParser for ForzaParser {
             let mut buf: Vec<u8> = vec![0; 500];
 
             loop {
-                match socket.recv(&mut buf) {
-                    Ok(_) => {
-                        let mut current = ForzaTelemetry {
-                            current_rpm: parse_f32_from_bytes(&buf[16..20]).round(),
-                            max_rpm: parse_f32_from_bytes(&buf[8..12]),
-                            speed: (parse_f32_from_bytes(&buf[244..248]) * 2.237).round(),
-                            best_lap: parse_f32_from_bytes(&buf[284..288]),
-                            current_lap: parse_f32_from_bytes(&buf[292..296]),
-                            last_lap: parse_f32_from_bytes(&buf[288..292]),
-                            lap_number: parse_u16_from_bytes(&buf[300..302]),
-                            position: buf[302],
-                            gear: buf[307],
-                            accel: buf[303] as f32,
-                            brake: buf[304] as f32,
-                            temp_left_f: parse_f32_from_bytes(&buf[256..260]).round(),
-                            temp_right_f: parse_f32_from_bytes(&buf[260..264]).round(),
-                            temp_left_r: parse_f32_from_bytes(&buf[264..268]).round(),
-                            temp_right_r: parse_f32_from_bytes(&buf[268..272]).round(),
-                            prev_best: 0.0,
-                        };
+                if let Ok(_) = socket.recv(&mut buf) {
+                    let mut current = ForzaTelemetry {
+                        current_rpm: parse_f32_from_bytes(&buf[16..20]).round(),
+                        max_rpm: parse_f32_from_bytes(&buf[8..12]),
+                        speed: (parse_f32_from_bytes(&buf[244..248]) * 2.237).round(),
+                        best_lap: parse_f32_from_bytes(&buf[284..288]),
+                        current_lap: parse_f32_from_bytes(&buf[292..296]),
+                        last_lap: parse_f32_from_bytes(&buf[288..292]),
+                        lap_number: parse_u16_from_bytes(&buf[300..302]),
+                        position: buf[302],
+                        gear: buf[307],
+                        accel: buf[303] as f32,
+                        brake: buf[304] as f32,
+                        temp_left_f: parse_f32_from_bytes(&buf[256..260]).round(),
+                        temp_right_f: parse_f32_from_bytes(&buf[260..264]).round(),
+                        temp_left_r: parse_f32_from_bytes(&buf[264..268]).round(),
+                        temp_right_r: parse_f32_from_bytes(&buf[268..272]).round(),
+                        prev_best: 0.0,
+                    };
 
-                        if let Some(prev) = &prev_state {
-                            if prev.prev_best == 0.0 && current.lap_number > 1 {
-                                current.prev_best = current.best_lap;
-                            }
-
-                            if current.last_lap != current.best_lap {
-                                current.prev_best = current.best_lap;
-                            }
+                    if let Some(prev) = &prev_state {
+                        if prev.prev_best == 0.0 && current.lap_number > 1 {
+                            current.prev_best = current.best_lap;
                         }
 
-                        if output
-                            .send(Telemetry::Forza(current.clone()))
-                            .await
-                            .is_err()
-                        {
-                            break;
+                        if current.last_lap != current.best_lap {
+                            current.prev_best = current.best_lap;
                         }
-
-                        prev_state = Some(current);
                     }
-                    Err(_) => (),
+
+                    if output
+                        .send(Telemetry::Forza(current.clone()))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    }
+
+                    prev_state = Some(current);
                 }
             }
         })
