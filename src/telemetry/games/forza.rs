@@ -128,7 +128,7 @@ impl TelemetryParser for ForzaParser {
             let mut buf: Vec<u8> = vec![0; 500];
 
             loop {
-                if let Ok(_) = socket.recv(&mut buf) {
+                if socket.recv(&mut buf).is_ok() {
                     let mut current = ForzaTelemetry {
                         current_rpm: parse_f32_from_bytes(&buf[16..20]).round(),
                         max_rpm: parse_f32_from_bytes(&buf[8..12]),
