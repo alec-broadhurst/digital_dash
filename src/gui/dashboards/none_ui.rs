@@ -1,6 +1,6 @@
 use iced::widget::{text, Container};
 
-use crate::gui::app::Dashboard;
+use crate::gui::dashboard::Dashboard;
 use crate::gui::message::Message;
 
 pub fn no_dashboard(dash: &Dashboard) -> Container<Message> {

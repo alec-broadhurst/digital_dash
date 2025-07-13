@@ -1,4 +1,4 @@
-use gui::app::Dashboard;
+use gui::dashboard::Dashboard;
 
 mod gui;
 mod telemetry;

@@ -2,7 +2,7 @@ use iced::widget::{container, progress_bar, text, Column, Container, Row, Text};
 use iced::Length::{Fill, FillPortion};
 use iced::{Alignment, Element};
 
-use crate::gui::app::Dashboard;
+use crate::gui::dashboard::Dashboard;
 use crate::gui::message::Message;
 use crate::gui::styles::container::ContainerType;
 use crate::gui::styles::progress_bar::ProgressBarStyle;

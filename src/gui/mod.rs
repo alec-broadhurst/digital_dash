@@ -1,4 +1,4 @@
-pub mod app;
+pub mod dashboard;
 pub mod dashboards;
 pub mod message;
 pub mod styles;
