@@ -58,4 +58,8 @@ impl Dashboard {
             _ => Subscription::none(),
         }
     }
+
+    pub fn get_telemetry(&self) -> Option<&Box<dyn TelemetryData>> {
+        self.telemetry.as_ref()
+    }
 }
