@@ -1,7 +1,7 @@
-use crate::utils::telemetry::Telemetry;
+use crate::telemetry::telemetry_data::TelemetryData;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Message {
     SwitchDashboard,
-    UpdateTelemetry(Telemetry),
+    UpdateTelemetry(Box<dyn TelemetryData>),
 }
