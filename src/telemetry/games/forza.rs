@@ -47,8 +47,12 @@ impl TelemetryData for ForzaTelemetry {
     fn get_lap_number(&self) -> u16 {
         self.lap_number
     }
-    fn get_lap_time(&self) -> f32 {
-        self.current_lap
+    fn get_lap_time(&self) -> String {
+        Self::format_time(self.current_lap)
+    }
+
+    fn get_best_lap(&self) -> String {
+        Self::format_time(self.best_lap)
     }
 
     fn get_tire_temps(&self) -> (f32, f32, f32, f32) {
