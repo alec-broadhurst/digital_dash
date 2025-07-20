@@ -1,6 +1,6 @@
-use crate::utils::telemetry::Telemetry;
+use crate::telemetry::telemetry_data::TelemetryData;
 use iced::futures::Stream;
 
 pub trait TelemetryParser {
-    fn parse_packets() -> impl Stream<Item = Telemetry>;
+    fn parse_packets() -> impl Stream<Item = Box<dyn TelemetryData>>;
 }
