@@ -9,7 +9,7 @@ use crate::gui::styles::progress_bar::ProgressBarStyle;
 use crate::utils::telemetry::Telemetry;
 
 pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
-    if let Some(Telemetry::Forza(forza_telemetry)) = dash.get_telemetry() {
+    if let Some(telemetry) = dash.get_telemetry() {
         // main column to hold all the widgets
         let mut dash = Column::new()
             .width(Fill)
@@ -27,11 +27,11 @@ pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
         // left side of middle row
         let rpm_pos = container(
             Column::new()
-                .push(rpm_container(forza_telemetry.get_current_rpm()).center(FillPortion(1)))
-                .push(position_container(forza_telemetry.get_position()).center(FillPortion(1)))
+                .push(rpm_container(telemetry.get_rpm()).center(FillPortion(1)))
+                .push(position_container(telemetry.get_position()).center(FillPortion(1)))
                 .push(empty_container().center(FillPortion(2)))
-                .push(accel_container(forza_telemetry.get_accel()).center(FillPortion(1)))
-                .push(brake_container(forza_telemetry.get_brake()).center(FillPortion(1)))
+                .push(accel_container(telemetry.get_throttle()).center(FillPortion(1)))
+                .push(brake_container(telemetry.get_brake()).center(FillPortion(1)))
                 .push(empty_container().center(FillPortion(4)))
                 .spacing(10),
         );
@@ -41,9 +41,9 @@ pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
         // center of middle row
         let speed_gear_temps = container(
             Column::new()
-                .push(speed_container(forza_telemetry.get_speed()).center(FillPortion(1)))
-                .push(gear_container(forza_telemetry.get_gear()).center(FillPortion(5)))
-                .push(tire_temp_container(forza_telemetry.get_tire_temps()).center(FillPortion(3)))
+                .push(speed_container(telemetry.get_speed()).center(FillPortion(1)))
+                .push(gear_container(telemetry.get_gear()).center(FillPortion(5)))
+                .push(tire_temp_container(telemetry.get_tire_temps()).center(FillPortion(3)))
                 .spacing(10),
         );
 
@@ -52,13 +52,13 @@ pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
         // right side of middle row
         let time_info = container(
             Column::new()
-                .push(lap_num_container(forza_telemetry.get_lap_number()).center(FillPortion(1)))
-                .push(laptime_container(forza_telemetry.get_current_lap()).center(FillPortion(3)))
+                .push(lap_num_container(telemetry.get_lap_number()).center(FillPortion(1)))
+                .push(laptime_container(telemetry.get_lap_time()).center(FillPortion(3)))
                 .push(
                     container(
                         Row::new()
-                            .push(delta_container(forza_telemetry.get_delta()))
-                            .push(best_lap_container(forza_telemetry.get_best_lap()))
+                            .push(delta_container(telemetry.get_delta()))
+                            .push(best_lap_container(telemetry.get_best_lap()))
                             .spacing(10),
                     )
                     .center(FillPortion(2)),
