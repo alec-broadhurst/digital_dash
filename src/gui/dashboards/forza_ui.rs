@@ -6,7 +6,6 @@ use crate::gui::dashboard::Dashboard;
 use crate::gui::message::Message;
 use crate::gui::styles::container::ContainerType;
 use crate::gui::styles::progress_bar::ProgressBarStyle;
-use crate::utils::telemetry::Telemetry;
 
 pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
     if let Some(telemetry) = dash.get_telemetry() {

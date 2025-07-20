@@ -1,6 +1,5 @@
 mod gui;
 mod telemetry;
-mod utils;
 
 use gui::dashboard::Dashboard;
 
