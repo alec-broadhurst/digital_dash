@@ -1,7 +1,7 @@
-use std::any::Any;
+use std::{any::Any, fmt::Debug};
 
 // === Trait for generic telemetry data ===
-pub trait TelemetryData: Any {
+pub trait TelemetryData: Any + Send + Debug {
     fn get_speed(&self) -> f32;
     fn get_rpm(&self) -> f32;
     fn get_gear(&self) -> u8;
