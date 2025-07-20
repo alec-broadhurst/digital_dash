@@ -7,10 +7,10 @@ use crate::gui::utils::DashboardVarient;
 use crate::telemetry::config::Game;
 use crate::telemetry::games::forza::ForzaParser;
 use crate::telemetry::parser::TelemetryParser;
-use crate::utils::telemetry::Telemetry;
+use crate::telemetry::telemetry_data::TelemetryData;
 
 pub struct Dashboard {
-    telemetry: Option<Telemetry>,
+    telemetry: Option<Box<dyn TelemetryData>>,
     current_dashboard: DashboardVarient,
 }
 
@@ -35,8 +35,8 @@ impl Dashboard {
                 Task::none()
             }
 
-            Message::UpdateTelemetry(telemetry) => {
-                self.telemetry = Some(telemetry);
+            Message::UpdateTelemetry(new_data) => {
+                self.telemetry = Some(new_data);
                 Task::none()
             }
         }
@@ -57,9 +57,5 @@ impl Dashboard {
 
             _ => Subscription::none(),
         }
-    }
-
-    pub fn get_telemetry(&self) -> Option<&Telemetry> {
-        self.telemetry.as_ref()
     }
 }
