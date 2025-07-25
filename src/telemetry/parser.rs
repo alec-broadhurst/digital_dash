@@ -1,7 +1,6 @@
-use std::sync::{Arc, Condvar, Mutex};
+use crate::telemetry::telemetry_data::TelemetryData;
+use iced::futures::Stream;
 
 pub trait TelemetryParser {
-    type GameTelemetry;
-
-    fn parse_packets(telemetry: Arc<(Mutex<Self::GameTelemetry>, Condvar)>);
+    fn parse_packets() -> impl Stream<Item = Box<dyn TelemetryData>>;
 }
