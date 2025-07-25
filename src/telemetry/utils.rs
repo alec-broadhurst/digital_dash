@@ -3,8 +3,8 @@ use std::net::UdpSocket;
 
 pub fn setup_udp_socket() -> UdpSocket {
     let ip_addr: String = local_ip().unwrap().to_string();
-    let port: &str = "8080";
-    let binding_addr: String = format!("{}:{}", ip_addr, port);
+    let port: &str = "5300";
+    let binding_addr: String = format!("127.0.0.1:{}", port);
     let socket: UdpSocket = UdpSocket::bind(binding_addr).unwrap();
     socket
 }
