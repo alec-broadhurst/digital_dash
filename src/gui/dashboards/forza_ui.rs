@@ -1,11 +1,12 @@
-use iced::widget::{container, progress_bar, text, Column, Container, Row, Text};
+use iced::widget::{canvas, container, progress_bar, text, Canvas, Column, Container, Row, Text};
 use iced::Length::{Fill, FillPortion};
-use iced::{Alignment, Element};
+use iced::{Alignment, Color, Element};
 
 use crate::gui::dashboard::Dashboard;
 use crate::gui::message::Message;
 use crate::gui::styles::container::ContainerType;
 use crate::gui::styles::progress_bar::ProgressBarStyle;
+use crate::gui::styles::rpm_light::RPMlight;
 
 pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
     if let Some(telemetry) = dash.get_telemetry() {
@@ -17,7 +18,7 @@ pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
             .align_x(Alignment::Center);
 
         // top row to hold rpm lights
-        let rpm_lights = rpm_lights_container();
+        let rpm_lights = rpm_lights_container(telemetry.get_max_rpm(), telemetry.get_rpm(), 9);
         dash = dash.push(rpm_lights);
 
         // middle row to hold rpm, position, gear, speed, lap number, and time info
@@ -83,10 +84,42 @@ pub fn forza_dashboard(dash: &Dashboard) -> Container<Message> {
     }
 }
 
-fn rpm_lights_container() -> Container<'static, Message> {
-    container(text("TODO").size(50))
+fn rpm_lights_container(
+    max_rpm: f32,
+    current_rpm: f32,
+    led_count: u32,
+) -> Container<'static, Message> {
+    let mut rpm_row = Row::new();
+    let activation_step = max_rpm / led_count as f32;
+
+    for i in 0..led_count {
+        let activation_threshold = i as f32 * activation_step;
+        let is_active = current_rpm >= activation_threshold;
+
+        // Use the LED index to determine the color range
+        let color_ratio = i as f32 / led_count as f32;
+        let activated_color = if color_ratio < 0.33 {
+            Color::from_rgb(255.0, 0.0, 0.0) // Red
+        } else if color_ratio < 0.66 {
+            Color::from_rgb(150.0, 150.0, 0.0) // Yellow
+        } else {
+            Color::from_rgb(0.0, 255.0, 0.0) // Green
+        };
+
+        let rpm_light = canvas(RPMlight::new(
+            20.0,
+            activation_threshold,
+            is_active,
+            activated_color,
+            Color::from_rgb(10.0, 10.0, 10.0), // dimmed gray when off
+        ));
+
+        rpm_row = rpm_row.push(rpm_light);
+    }
+
+    container(rpm_row)
         .width(Fill)
-        .style(ContainerType::rounded_filled)
+        .style(ContainerType::rounded_border)
         .center_x(Fill)
 }
 
