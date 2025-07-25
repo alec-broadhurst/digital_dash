@@ -4,6 +4,7 @@ use std::{any::Any, fmt::Debug};
 pub trait TelemetryData: Any + Send + Debug {
     fn get_speed(&self) -> f32;
     fn get_rpm(&self) -> f32;
+    fn get_max_rpm(&self) -> f32;
     fn get_gear(&self) -> u8;
     fn get_throttle(&self) -> f32;
     fn get_brake(&self) -> f32;
