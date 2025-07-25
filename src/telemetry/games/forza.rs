@@ -32,6 +32,11 @@ impl TelemetryData for ForzaTelemetry {
     fn get_rpm(&self) -> f32 {
         self.current_rpm
     }
+
+    fn get_max_rpm(&self) -> f32 {
+        self.max_rpm
+    }
+
     fn get_gear(&self) -> u8 {
         self.gear
     }
